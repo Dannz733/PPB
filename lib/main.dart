@@ -1,562 +1,294 @@
 import 'package:flutter/material.dart';
 
-// Model class untuk Task = blueprint/template untuk objek Task
-class Task {
-  // Property untuk menyimpan judul task
-  String title;
-  // Property untuk menyimpan status selesai/belum
-  bool isCompleted;
-
-  // Constructor = function untuk membuat Task baru
-  Task({
-    // title wajib diisi (required)
-    required this.title,
-    // isCompleted opsional, default false (belum selesai)
-    this.isCompleted = false,
-  });
-
-  // Method untuk toggle status completed (true ↔ false)
-  void toggle() {
-    // Flip boolean: true jadi false, false jadi true
-    isCompleted = !isCompleted;
-  }
-
-  // Override toString untuk debug print yang readable
-  @override
-  String toString() {
-    return 'Task{title: $title, isCompleted: $isCompleted}';
-  }
-}
-
-// Function main tetap sama
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
-// Deklarasi class MyApp yang extends StatelessWidget
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Return MaterialApp sebagai root aplikasi
     return MaterialApp(
-      title: 'Todo App',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const TodoListScreen(),
+      title: 'Wireframe Buku Novel',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(primarySwatch: Colors.grey),
+      home: const MenuUtama(),
     );
   }
 }
 
-// ✅ Ubah TodoListScreen jadi StatefulWidget
-class TodoListScreen extends StatefulWidget {
-  const TodoListScreen({super.key});
+// ==================== PHONE MOCKUP ====================
+class PhoneMockup extends StatelessWidget {
+  final Widget child;
+  const PhoneMockup({super.key, required this.child});
 
-  // Wajib ada -> hubungkan ke State
   @override
-  State<TodoListScreen> createState() => _TodoListScreenState();
-}
-
-// State class yang menyimpan data dan build UI
-class _TodoListScreenState extends State<TodoListScreen> {
-  // Helper function untuk statistic items
-  Widget _buildStatItem(String label, int count, IconData icon, Color color) {
-    return Column(
-      children: [
-        Container(
-          padding: EdgeInsets.all(12),
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 260,
+        height: 520,
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(6),
+        child: Container(
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            shape: BoxShape.circle,
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
           ),
-          child: Icon(icon, color: color, size: 24),
-        ),
-        SizedBox(height: 8),
-        Text(
-          count.toString(),
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
-      ],
-    );
-  }
-  // State variables = data yang bisa berubah
-  // List kosong untuk menyimpan semua tasks
-  List<Task> tasks = [];
-  // Controller untuk mengontrol TextField (ambil text, clear, dll)
-  TextEditingController taskController = TextEditingController();
-  // Function untuk toggle status completed
-  void toggleTask(int index) {
-    setState(() {
-      tasks[index].toggle(); // Pakai method toggle dari Task class
-    });
-
-    Task task = tasks[index];
-    String status = task.isCompleted ? "selesai" : "belum selesai";
-    print('Task $status: ${task.title}');
-  }
-  // Function untuk menambah task baru ke dalam list
-// Function addTask dengan validasi comprehensive dan feedback
-void addTask() {
-  // Ambil dan bersihkan input text
-  String newTaskTitle = taskController.text.trim();
-
-  // Validasi 1: Cek apakah input kosong
-  if (newTaskTitle.isEmpty) {
-    // Tampilkan SnackBar warning untuk input kosong
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        // Content dengan icon dan text
-        content: Row(
-          children: [
-            Icon(Icons.warning, color: Colors.white),
-            SizedBox(width: 8),
-            Text('Task tidak boleh kosong!'),
-          ],
-        ),
-        // Styling SnackBar
-        backgroundColor: Colors.orange,
-        duration: Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-    // Stop execution jika gagal validasi
-    return;
-  }
-
-  // Validasi 2: Cek task duplikat (case insensitive)
-  bool isDuplicate = tasks.any((task) =>
-      task.title.toLowerCase() == newTaskTitle.toLowerCase());
-
-  if (isDuplicate) {
-    // SnackBar untuk task duplikat
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.info, color: Colors.white),
-            SizedBox(width: 8),
-            // Expanded agar text tidak overflow
-            Expanded(child: Text('Task "$newTaskTitle" sudah ada!')),
-          ],
-        ),
-        backgroundColor: Colors.blue,
-        duration: Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-    return;
-  }
-
-  // Validasi 3: Cek panjang task maksimal 100 karakter
-  if (newTaskTitle.length > 100) {
-    // SnackBar untuk task terlalu panjang
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.error, color: Colors.white),
-            SizedBox(width: 8),
-            Expanded(child: Text('Task terlalu panjang! Maksimal 100 karakter.')),
-          ],
-        ),
-        backgroundColor: Colors.red,
-        duration: Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-    return;
-  }
-
-  // Semua validasi passed - add task
-  setState(() {
-    Task newTask = Task(title: newTaskTitle);
-    tasks.add(newTask);
-  });
-
-  // Clear input
-  taskController.clear();
-
-  // Success feedback
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Row(
-        children: [
-          Icon(Icons.check_circle, color: Colors.white),
-          SizedBox(width: 8),
-          Expanded(child: Text('Task "$newTaskTitle" berhasil ditambahkan!')),
-        ],
-      ),
-      backgroundColor: Colors.green,
-      duration: Duration(seconds: 1),
-      behavior: SnackBarBehavior.floating,
-    ),
-  );
-
-  print('Task ditambahkan: $newTaskTitle');
-}
-    // Function async untuk menghapus task dengan konfirmasi dialog
-  void removeTask(int index) async {
-    // Simpan nama task yang akan dihapus untuk ditampilkan di dialog
-    Task taskToDelete = tasks[index];
-
-    // Tampilkan dialog konfirmasi dan tunggu response user
-    bool? shouldDelete = await showDialog<bool>(
-      context: context,
-      // Builder function untuk membuat content dialog
-      builder: (BuildContext context) {
-        // AlertDialog = popup konfirmasi
-        return AlertDialog(
-          // Title dialog dengan icon warning
-          title: const Row(
+          child: Column(
             children: [
-              Icon(Icons.warning, color: Colors.orange),
-              SizedBox(width: 8),
-              Text('Konfirmasi Hapus'),
-            ],
-          ),
-          // Content dialog
-          content: Column(
-            // Column sekecil mungkin
-            mainAxisSize: MainAxisSize.min,
-            // Align kiri
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Text pertanyaan
-              const Text('Apakah kamu yakin ingin menghapus task ini?'),
-              const SizedBox(height: 12),
-              // Container untuk preview task yang akan dihapus
+              // Status bar palsu
               Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                // Preview task dalam tanda kutip
-                child: Text(
-                  '"${taskToDelete.title}"', // Akses .title property
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w500,
-                  ),
+                height: 22,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "9:41",
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Row(
+                      children: const [
+                        Icon(Icons.signal_cellular_4_bar, size: 12),
+                        SizedBox(width: 2),
+                        Icon(Icons.wifi, size: 12),
+                        SizedBox(width: 2),
+                        Icon(Icons.battery_full, size: 12),
+                      ],
+                    ),
+                  ],
                 ),
               ),
+              // Isi halaman
+              Expanded(child: child),
             ],
           ),
-          // Actions = tombol-tombol di bawah dialog
-          actions: [
-            // Tombol Batal
-            TextButton(
-              // Tutup dialog dan return false
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Batal'),
-            ),
-            // Tombol Hapus
-            ElevatedButton(
-              // Tutup dialog dan return true
-              onPressed: () => Navigator.of(context).pop(true),
-              // Styling button merah
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Hapus'),
-            ),
-          ],
-        );
-      },
+        ),
+      ),
     );
-
-    // Cek apakah user pilih hapus (shouldDelete == true)
-    if (shouldDelete == true) {
-      setState(() {
-        tasks.removeAt(index); // Hapus dari list
-      });
-
-      // Debug print
-      debugPrint('Task dihapus: $taskToDelete');
-      debugPrint('Sisa tasks: ${tasks.length}');
-    } else {
-      debugPrint('Delete dibatalkan');
-    }
   }
+}
 
-  // ✅ Dispose controller untuk mencegah memory leak
-  @override
-  void dispose() {
-    taskController.dispose();
-    super.dispose();
-  }
+// ==================== MENU UTAMA ====================
+class MenuUtama extends StatelessWidget {
+  const MenuUtama({super.key});
 
-  // Override method build untuk membuat UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My To-Do List'),
-        backgroundColor: Colors.blue,
+      backgroundColor: Colors.grey[200],
+      body: SafeArea(
+        child: PhoneMockup(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                const Text(
+                  "📚 Menu Utama Buku Novel",
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                _menuButton(context, "Tambah Buku", TambahBukuPage()),
+                _menuButton(context, "Lihat Daftar Buku", LihatDaftarPage()),
+                _menuButton(context, "Hapus Buku", HapusBukuPage()),
+                _menuButton(context, "Keluar", KeluarPage()),
+              ],
+            ),
+          ),
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(12.0),
+    );
+  }
+
+  Widget _menuButton(BuildContext context, String label, Widget page) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      width: double.infinity,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.grey[400],
+          foregroundColor: Colors.black,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+        ),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => page),
+          );
+        },
+        child: Text(label),
+      ),
+    );
+  }
+}
+
+// ==================== TAMBAH BUKU ====================
+class TambahBukuPage extends StatelessWidget {
+  TambahBukuPage({super.key});
+
+  final TextEditingController judulController = TextEditingController();
+  final TextEditingController penulisController = TextEditingController();
+  final TextEditingController tahunController = TextEditingController();
+  final TextEditingController genreController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[200],
+      body: PhoneMockup(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              const Text(
+                "Tambah Buku",
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
-              child: Column(
+              const SizedBox(height: 20),
+              _inputField("Judul Buku", judulController),
+              _inputField("Penulis", penulisController),
+              _inputField("Tahun Terbit", tahunController),
+              _inputField("Genre", genreController),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Buku berhasil ditambahkan (dummy)!"),
+                    ),
+                  );
+                },
+                child: const Text("Simpan"),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _inputField(String hint, TextEditingController controller) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        border: Border.all(color: Colors.black54),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(hintText: hint, border: InputBorder.none),
+      ),
+    );
+  }
+}
+
+// ==================== LIHAT DAFTAR ====================
+class LihatDaftarPage extends StatelessWidget {
+  const LihatDaftarPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final dummyBuku = List.generate(5, (i) => "Novel ke-${i + 1}");
+
+    return Scaffold(
+      backgroundColor: Colors.grey[200],
+      body: PhoneMockup(
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: dummyBuku.length,
+          itemBuilder: (context, index) {
+            return Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              child: ListTile(
+                leading: const Icon(Icons.book_outlined),
+                title: Text(dummyBuku[index]),
+                subtitle: const Text("Penulis tidak diketahui"),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== HAPUS BUKU ====================
+class HapusBukuPage extends StatelessWidget {
+  const HapusBukuPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final dummyBuku = List.generate(6, (i) => "Novel ${i + 1}");
+
+    return Scaffold(
+      backgroundColor: Colors.grey[200],
+      body: PhoneMockup(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: GridView.builder(
+            itemCount: dummyBuku.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+            ),
+            itemBuilder: (context, index) {
+              return Stack(
                 children: [
-                  // TextField dengan controller untuk ambil input user
-                  TextField(
-                    controller: taskController,
-                    textCapitalization: TextCapitalization.sentences, // Auto capitalize
-                    maxLength: 100, // Limit input length
-                    decoration: InputDecoration(
-                      hintText: 'Ketik task baru di sini...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      prefixIcon: Icon(Icons.edit),
-                      counterText: '', // Hide character counter
-                      helperText: 'Maksimal 100 karakter', // Helper text
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    onSubmitted: (value) => addTask(), // Enter key also adds task
+                    child: Center(child: Text(dummyBuku[index])),
                   ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        addTask();
-                        debugPrint('Button ditekan!');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.add),
-                          SizedBox(width: 8),
-                          Text(
-                            'Add Task',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  Positioned(
+                    right: 4,
+                    top: 4,
+                    child: Icon(Icons.delete, color: Colors.red[400]),
                   ),
                 ],
-              ),
-            ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-            // Jarak vertikal antara form dan counter
-            SizedBox(height: 20),
-            // Text yang menampilkan jumlah tasks
-            Text(
-              // Conditional text berdasarkan apakah list kosong atau tidak
-              tasks.isEmpty
-                  ? 'Belum ada task. Yuk tambah yang pertama!'
-                  : 'Kamu punya ${tasks.length} task${tasks.length > 1 ? 's' : ''}',
-              // Styling text
-              style: TextStyle(
-                fontSize: 16,
-                // Warna berbeda: abu jika kosong, biru jika ada isi
-                color: tasks.isEmpty ? Colors.grey[600] : Colors.blue[700],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            // Jarak vertikal setelah form
-            const SizedBox(height: 20),
-            // Text counter untuk menampilkan jumlah tasks
-            Text(
-              'Total Tasks: ${tasks.length}',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-            ),
-            // Jarak vertikal sebelum area list
-            const SizedBox(height: 20),
-            // Expanded mengambil sisa ruang yang tersedia di Column
-            Expanded(
-              // Container untuk styling area list
-              child: Container(
-                // Lebar penuh
-                width: double.infinity,
-                // Padding di dalam container
-                padding: const EdgeInsets.all(16),
-                // Dekorasi container: border dan border radius
-                decoration: BoxDecoration(
-                  // Border abu-abu di sekeliling
-                  border: Border.all(color: Colors.grey[300]!, width: 2),
-                  // Sudut melengkung
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                // Conditional rendering: tampil berbeda jika kosong vs ada isi
-                child: tasks.isEmpty
-                    ? // Tampilan jika list kosong
-                      Center(
-                        // Column untuk susun icon dan text vertikal
-                        child: Column(
-                          // Center semua content di tengah
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Icon inbox kosong
-                            Icon(
-                              Icons.inbox_outlined,
-                              size: 64,
-                              color: Colors.grey[400],
-                            ),
-                            // Jarak vertikal
-                            const SizedBox(height: 16),
-                            // Text utama
-                            Text(
-                              'Belum ada task',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            // Jarak kecil
-                            const SizedBox(height: 8),
-                            // Text penjelasan
-                            Text(
-                              'Tambahkan task pertamamu di atas!',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[500],
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : // Tampilan jika ada tasks: ListView untuk scroll
-                      ListView.builder(
-                        physics: BouncingScrollPhysics(),
-                        // Jumlah item yang akan dibuat
-                        itemCount: tasks.length,
-                        // Function yang dipanggil untuk membuat setiap item
-                        itemBuilder: (context, index) {
-                          Task task = tasks[index]; // Ambil Task object
+// ==================== KELUAR ====================
+class KeluarPage extends StatelessWidget {
+  const KeluarPage({super.key});
 
-                          return Padding(
-                            padding: EdgeInsets.only(bottom: 8.0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                // Background berubah berdasarkan status
-                                color: task.isCompleted ? Colors.green[50] : Colors.white,
-                                borderRadius: BorderRadius.circular(8.0),
-                                border: task.isCompleted
-                                    ? Border.all(color: Colors.green[200]!, width: 2) // Border hijau jika selesai
-                                    : null,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.2),
-                                    spreadRadius: 1,
-                                    blurRadius: 3,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Opacity(
-                                opacity: task.isCompleted ? 0.7 : 1.0, // Completed task lebih transparan
-                                child: ListTile(
-                                  leading: Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      // Warna berubah berdasarkan status
-                                      color: task.isCompleted ? Colors.green[100] : Colors.blue[100],
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Center(
-                                      child: task.isCompleted
-                                          ? Icon(Icons.check, color: Colors.green[700]) // Icon check jika selesai
-                                          : Text(
-                                              '${index + 1}',
-                                              style: TextStyle(
-                                                color: Colors.blue[700],
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                    ),
-                                  ),
-                                  title: Text(
-                                    task.title,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: task.isCompleted ? Colors.grey[600] : Colors.black87,
-                                      decoration: task.isCompleted
-                                          ? TextDecoration.lineThrough
-                                          : TextDecoration.none,
-                                    ),
-                                  ),
-                                  subtitle: Text(
-                                    task.isCompleted ? 'Selesai ✅' : 'Belum selesai',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: task.isCompleted ? Colors.green[600] : Colors.grey[600],
-                                    ),
-                                  ),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(
-                                          task.isCompleted
-                                              ? Icons.check_circle
-                                              : Icons.radio_button_unchecked,
-                                          color: task.isCompleted ? Colors.green[600] : Colors.grey[400],
-                                        ),
-                                        onPressed: () => toggleTask(index),
-                                        tooltip: task.isCompleted
-                                            ? 'Mark as incomplete'
-                                            : 'Mark as complete',
-                                      ),
-                                      // Delete button
-                                      IconButton(
-                                        icon: Icon(Icons.delete_outline, color: Colors.red[400]),
-                                        onPressed: () => removeTask(index),
-                                        tooltip: 'Hapus task',
-                                      ),
-                                    ],
-                                  ),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                                  onTap: () => toggleTask(index),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-              ),
-            ),
-          ],
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[200],
+      body: PhoneMockup(
+        child: const Center(
+          child: Text(
+            "Terima kasih!\nAnda telah keluar dari aplikasi.",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
         ),
       ),
     );
